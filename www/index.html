@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+
+    <link rel="stylesheet" type="text/css" href="./nouislider.min.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script async src="nouislider.min.js"></script>
+    <script async src="./index.js" type="module"></script>
+
+    <title>Revisting the Insights model</title>
+  </head>
+  <body>
+    <section id="dist">
+      <canvas width=500 height=500 id="progress_dist"></canvas>
+      <button id="reset">Reset</button>
+
+      <h2>Pre-set Priors</h2>
+      <p>
+        <small>
+          Note: The simulator can be very slow for larger values of <em>q</em>, as most of the samples need to be thrown away.
+        </small>
+      </p>
+
+      <div>
+        <label for="num_samples">Number of samples to take when running the simulation</label>
+        <input type="number" value="5000" min="1000" max="20000" step="1000" id="num_samples">
+      </div>
+
+      <div>
+        <label for="min_insights">Minimum plausible number of insights required</label>
+        <input type="number" value="10" min="1" id="min_insights">
+      </div>
+
+      <div>
+        <label for="pareto_q">q</label>
+        <input type="number" value="0.2" id="pareto_q" step="0.05" min="0.05" max="0.95"> 
+        <button id="pareto_btn">
+          Pareto Distribution
+        </button>
+      </div>
+
+      <div>
+        <button id="uniform_pareto_btn">
+          Pareto Distribution, <em>q</em> ~ Uniform(0,1)
+        </button>
+      </div>
+
+      <div>
+        <label for="alpha"><em>&alpha;</em>:</label>
+        <input type="number" value="1" id="alpha">
+        <label for="alpha"><em>&beta;</em>:</label>
+        <input type="number" value="1" id="beta">
+        <button id="beta_pareto_btn">
+          Pareto distribution, <em>q</em> ~ Beta(&alpha;, &beta;)
+        </button>
+      </div>
+
+    </section>
+
+    <section id="insights">
+      <canvas width=500 height=300 id="insights_plot"></canvas>
+      <div id="year_slider"></div>
+      <output id="year_range"></output>
+      <select id="regression">
+        <option value="Linear">Linear</option>
+        <option value="Exponential">Exponential</option>
+        <option value="Sigmoidal">Sigmoidal</option>
+      </select>
+    </section>
+
+    <section id="timeline">
+      <canvas id="timeline_plot" width=500 height=300></canvas>
+      <div id="last_year"></div>
+    </section>
+
+  </body>
+</html>

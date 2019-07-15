@@ -1,0 +1,20 @@
+body {
+  max-width: 800px;
+  margin-left: 1em;
+}
+
+section {
+  padding-bottom: 2em;
+}
+
+#year_slider {
+  max-width: 500px;
+}
+
+#dist {
+  max-width: 500px;
+}
+
+#timeline {
+  max-width: 500px;
+}

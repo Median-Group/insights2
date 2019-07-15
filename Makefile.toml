@@ -1,0 +1,40 @@
+[env]
+PORT = "8000"
+
+[tasks.mkpkg]
+command = "mkdir"
+args = ["-p", "www/pkg"]
+
+[tasks.check]
+command = "cargo"
+args = ["check", "--target=wasm32-unknown-unknown"]
+
+[tasks.build]
+command = "cargo"
+args = ["build", "--target=wasm32-unknown-unknown"]
+
+[tasks.clippy]
+command = "cargo"
+args = ["clippy", "--target=wasm32-unknown-unknown"]
+
+[tasks.build_release]
+command = "cargo"
+args = ["build", "--target=wasm32-unknown-unknown", "--release"]
+
+[tasks.bind]
+command = "wasm-bindgen"
+args = ["--out-dir", "www/pkg", "--target", "web", "target/wasm32-unknown-unknown/debug/insights2.wasm"]
+dependencies = ["build"]
+
+[tasks.bind_release]
+command = "wasm-bindgen"
+args = ["--out-dir", "www/pkg", "--target", "web", "target/wasm32-unknown-unknown/release/insights2.wasm"]
+dependencies = ["build_release"]
+
+[tasks.serve]
+script = [
+  '''
+  cd www
+  microserver -p 8000
+  '''
+]
