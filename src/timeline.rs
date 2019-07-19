@@ -37,6 +37,24 @@ pub fn draw_timeline(max_year: i32, pts: &[(f32, f32)], inv_curve: &Option<Box<F
         return;
     }
 
+    let npts: Vec<(i32, f32)> = linspace(0.01, 0.999, 10_000)
+        .map(|portion| {
+            (
+                inv_curve((insights_cnt / portion) as i32) as i32,
+                1. - prob_from_portion(portion, pts).unwrap() as f32,
+            )
+        })
+        .filter(|(y, _)| *y >= 2020)
+        .rev()
+        .collect();
+
+    let last_year = match npts.last() {
+        Some(pt) => pt.0,
+        None => return,
+    };
+
+    let max_year = max_year.min(last_year);
+
     let mut chart = match ChartBuilder::on(&root)
         .caption("Implied Timeline", font)
         .x_label_area_size(50)
@@ -54,22 +72,8 @@ pub fn draw_timeline(max_year: i32, pts: &[(f32, f32)], inv_curve: &Option<Box<F
         .draw()
         .unwrap();
 
-    let mut npts: Vec<(i32, f32)> = linspace(0.01, 0.99, 50_000)
-        .map(|portion| {
-            (
-                inv_curve((insights_cnt / portion) as i32) as i32,
-                1. - prob_from_portion(portion, pts).unwrap() as f32,
-            )
-        })
-        .filter(|(y, _)| *y >= 2020)
-        .rev()
-        .collect();
-
-    let last_p = match npts.last() {
-        Some(pt) => pt.1,
-        None => return,
-    };
-    npts.extend(vec![(max_year, last_p)]);
+    // extend the plot to the end of the range
+    //npts.push((max_year, last_p));
 
     chart
         .draw_series(LineSeries::new(npts.into_iter(), &RGBColor(0, 136, 238)))
