@@ -1,4 +1,4 @@
-use crate::data::CUM;
+use crate::{data::CUM, CurveFn};
 use itertools_num::linspace;
 use plotters::prelude::*;
 
@@ -21,7 +21,7 @@ fn prob_from_portion(mut portion: f32, pts: &[(f32, f32)]) -> Option<f32> {
     None
 }
 
-pub fn draw_timeline(max_year: i32, pts: &[(f32, f32)], inv_curve: &Option<Box<Fn(i32) -> f32>>) {
+pub fn draw_timeline(max_year: i32, pts: &[(f32, f32)], inv_curve: &Option<CurveFn>) {
     let insights_cnt = CUM.last().unwrap().1 as f32;
 
     let inv_curve = match inv_curve {

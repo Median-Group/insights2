@@ -9,6 +9,8 @@ mod insights;
 mod timeline;
 mod util;
 
+type CurveFn = Box<dyn Fn(i32) -> f32>;
+
 #[wasm_bindgen]
 pub struct State {
     prog_points: Vec<(f32, f32)>,
@@ -17,9 +19,9 @@ pub struct State {
     last: i32,
     mode: String,
     num_samples: u16,
-    model_curve: Option<Box<Fn(i32) -> f32>>,
+    model_curve: Option<CurveFn>,
     curve_repr: Option<String>,
-    inv_curve: Option<Box<Fn(i32) -> f32>>,
+    inv_curve: Option<CurveFn>,
     sub_cum: Vec<(i16, u8)>,
 }
 

@@ -1,4 +1,4 @@
-use crate::util::fit_sigmoid;
+use crate::{util::fit_sigmoid, CurveFn};
 use linreg::linear_regression_of;
 use plotters::prelude::*;
 
@@ -6,7 +6,7 @@ pub fn draw_insights(
     min_year: i16,
     max_year: i16,
     cum: &[(i16, u8)],
-    model_curve: &Option<Box<Fn(i32) -> f32>>,
+    model_curve: &Option<CurveFn>,
     curve_repr: String,
     //mode: String,
 ) {
@@ -90,8 +90,6 @@ pub fn draw_insights(
         .draw()
         .unwrap();
 }
-
-type CurveFn = Box<Fn(i32) -> f32>;
 
 pub fn reg(mode: &str, cum: &[(i16, u8)]) -> Option<(String, CurveFn, CurveFn)> {
     match mode {
