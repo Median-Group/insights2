@@ -1,10 +1,12 @@
 use differential_evolution2::self_adaptive_de;
 
-pub fn sigmoid(m: f32, k: f32, b: f32, x: f32) -> f32 {
+/// Computes a sigmoid.
+pub(crate) fn sigmoid(m: f32, k: f32, b: f32, x: f32) -> f32 {
     m / (1. + (-k * (x - b)).exp())
 }
 
-pub fn fit_sigmoid(pts: &[(f32, f32)]) -> Option<(f32, f32, f32)> {
+/// Fits a sigmoid given a slice of points using a simple genetic optimizer.
+pub(crate) fn fit_sigmoid(pts: &[(f32, f32)]) -> Option<(f32, f32, f32)> {
     let cost = |pos: &[f32]| -> f32 {
         let (m, k, b): (f32, f32, f32) = (pos[0], pos[1], pos[2]);
         pts.iter()
@@ -21,7 +23,7 @@ pub fn fit_sigmoid(pts: &[(f32, f32)]) -> Option<(f32, f32, f32)> {
     let n_iters = 20_000;
 
     de.iter().nth(n_iters);
-    let (cost, params) = de.best().unwrap();
+    let (cost, params) = de.best()?;
 
     if *cost < 1.0 {
         Some((params[0], params[1], params[2]))
@@ -30,6 +32,7 @@ pub fn fit_sigmoid(pts: &[(f32, f32)]) -> Option<(f32, f32, f32)> {
     }
 }
 
+///// Macro for logging during development.
 //#[macro_export]
 //macro_rules! log {
 //    { $($expr:expr),* $(,)* } => {

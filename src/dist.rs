@@ -6,6 +6,7 @@ use rand::prelude::*;
 use rand_distr::{Beta, Exp, Uniform};
 use rand_xorshift::XorShiftRng;
 
+/// Bounds points on distribution plot.
 fn bound(x: f32) -> f32 {
     if x < 0. {
         0.
@@ -16,13 +17,25 @@ fn bound(x: f32) -> f32 {
     }
 }
 
+/// Different types of provided distributions
 pub enum DistMode {
+    /// Mixture of Paretos where the `q` parameter is sampled uniformly from [0.001, 1)
     Uniform,
+    /// A single Pareto where the `q` parameter is provided by the user.
     Q(f32),
+    /// Mixture of Paretos where the `q` parameter is sampled from a Beta.
     Beta(f32, f32),
 }
 
+/// Generate a Pareto or mixture of Paretos.
+///
+/// # Arguments
+///
+/// - `min: u32` - Plausible minimum number of insights to achieve AGI.
+/// - `n_samps: usize` - Number of samples to take from the distribution.
+/// - `mode: DistMode` - Which distribution to sample from.
 pub fn pareto(min: u32, n_samps: usize, mode: DistMode) -> Vec<(f32, f32)> {
+    // static allocation, prevent repeated work
     lazy_static! {
         static ref REQS: Vec<(f32, f32)> = linspace(0.005, 0.999, 500)
             .map(|x| {
@@ -32,10 +45,14 @@ pub fn pareto(min: u32, n_samps: usize, mode: DistMode) -> Vec<(f32, f32)> {
             .collect();
     }
 
+    // Xor shift random number generator (https://en.wikipedia.org/wiki/Xorshift) with known seed,
+    // output should be deterministic up to floating point error.
     let mut rng = XorShiftRng::seed_from_u64(1);
 
+    // parameterized Pareto.
     let lambda = |q: f32| -> f64 { -(1. - q).ln() as f64 };
 
+    // pre-allocate vector
     let mut samples = Vec::with_capacity(n_samps);
 
     match mode {
@@ -52,7 +69,7 @@ pub fn pareto(min: u32, n_samps: usize, mode: DistMode) -> Vec<(f32, f32)> {
                         })
                         .map(|x| x.min(800.0) as f32) // prevent overflow
                         .map(|x| min as f32 * 2f32.powf(x))
-                        .find(|&x| x > (CUM.last().unwrap().1 as f32))
+                        .find(|&x| x > (CUM.last().unwrap().1 as f32)) // This is effectively a Bayesian update
                         .unwrap(),
                 );
             }
@@ -96,8 +113,21 @@ pub fn pareto(min: u32, n_samps: usize, mode: DistMode) -> Vec<(f32, f32)> {
         .collect()
 }
 
+/// Adds a point to the progress distribution, modifying other points as necessary to preserve
+/// monotonicity.
+///
+/// # Arguments
+///
+/// - `pts: &mut Vec<(f32, f32)>` - The previous collection of points.
+/// - `new_x: f32` - The x-coordinate of the point to be added, i.e., the proportion of required
+/// insights that have been discovered.
+/// - `new_y: f32` - The y-coordinate of the point to be added, i.e., the probability the the process
+/// is no more than this much of the way done.
 pub fn add_point(pts: &mut Vec<(f32, f32)>, new_x: f32, new_y: f32) -> Vec<(f32, f32)> {
-    // the coordinate transformation is just an affine map
+    // The coordinate transformation is just an affine map.
+    // This could be somewhat more robust and allow for dynamically scalable canvas
+    // for drawing/displaying the distribution, but if would require slightly more
+    // complicated state management.
     let xb = -1. / 9.;
     let xm = 1. / 450.;
 
@@ -110,6 +140,7 @@ pub fn add_point(pts: &mut Vec<(f32, f32)>, new_x: f32, new_y: f32) -> Vec<(f32,
 
     pts.sort_unstable_by(|(k1, _), (k2, _)| k1.partial_cmp(k2).unwrap());
 
+    // enforce monotonicity
     pts.iter()
         .copied()
         .map(|(x, y)| {
@@ -125,37 +156,35 @@ pub fn add_point(pts: &mut Vec<(f32, f32)>, new_x: f32, new_y: f32) -> Vec<(f32,
         .collect()
 }
 
-pub fn draw_dist(pts: &[(f32, f32)]) {
+pub fn draw_dist(pts: &[(f32, f32)]) -> Option<()> {
     let pts = pts.iter().copied();
 
-    let backend = CanvasBackend::new("progress_dist").expect("Can't access backend");
+    // gracefully fail, and avoid the code gen bloat that happens with panics.
+    let backend = CanvasBackend::new("progress_dist")?;
 
     let root = backend.into_drawing_area();
 
-    if root.fill(&White).is_err() {
-        return;
-    }
+    root.fill(&White).ok()?;
 
     let font: FontDesc = ("Arial", 20.0).into();
 
-    let mut chart = match ChartBuilder::on(&root)
+    let mut chart = ChartBuilder::on(&root)
         .caption("Draw a progress distribution", font)
         .x_label_area_size(50)
         .y_label_area_size(50)
         .build_ranged(0.0..1f32, 0.0..1f32)
-    {
-        Ok(c) => c,
-        Err(_) => return,
-    };
+        .ok()?;
 
     chart
         .configure_mesh()
         .x_desc("Proportion of required insights that have been discovered")
         .y_desc("Pr(no more than this much of the way done)")
         .draw()
-        .unwrap();
+        .ok()?;
 
     chart
         .draw_series(LineSeries::new(pts, &RGBColor(0, 136, 238)))
-        .unwrap();
+        .ok()?;
+
+    Some(())
 }

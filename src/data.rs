@@ -1,3 +1,4 @@
+/// Cumulative sum of insights, baked into binary.
 pub const CUM: [(i16, u8); 110] = [
     (-600, 1),
     (-425, 2),

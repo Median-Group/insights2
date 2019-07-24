@@ -2,6 +2,7 @@ use crate::{data::CUM, CurveFn};
 use itertools_num::linspace;
 use plotters::prelude::*;
 
+/// Calculates the probability from the portion.
 fn prob_from_portion(mut portion: f32, pts: &[(f32, f32)]) -> Option<f32> {
     if portion <= 0.0 {
         portion = 0.00;
@@ -21,21 +22,32 @@ fn prob_from_portion(mut portion: f32, pts: &[(f32, f32)]) -> Option<f32> {
     None
 }
 
-pub fn draw_timeline(max_year: i32, pts: &[(f32, f32)], inv_curve: &Option<CurveFn>) {
-    let insights_cnt = CUM.last().unwrap().1 as f32;
+/// Draws the projected timeline.
+///
+/// # Arguments
+///
+/// - `max_year: i32` - Upper bound for how far to extend the projection.
+/// - `pts: &[(f32, f32)]` - A progress distribution.
+/// - `inv_curve: &Option<CurveFn>` - The inverse of the fit curve.
+///
+/// # Remark
+///
+/// The plot may not extend to `max_year` if large enough values cannot be obtained.
+/// It is an upper bound, not a least upper bound.
+pub(crate) fn draw_timeline(
+    max_year: i32,
+    pts: &[(f32, f32)],
+    inv_curve: &Option<CurveFn>,
+) -> Option<()> {
+    let insights_cnt = CUM.last()?.1 as f32;
 
-    let inv_curve = match inv_curve {
-        Some(ic) => ic,
-        None => return,
-    };
+    let inv_curve = (*inv_curve).as_ref()?;
 
-    let backend = CanvasBackend::new("timeline_plot").expect("Can't access backend");
+    let backend = CanvasBackend::new("timeline_plot")?;
     let root = backend.into_drawing_area();
     let font: FontDesc = ("Arial", 20.0).into();
 
-    if root.fill(&White).is_err() {
-        return;
-    }
+    root.fill(&White).ok()?;
 
     let npts: Vec<(i32, f32)> = linspace(0.01, 0.999, 10_000)
         .map(|portion| {
@@ -48,34 +60,27 @@ pub fn draw_timeline(max_year: i32, pts: &[(f32, f32)], inv_curve: &Option<Curve
         .rev()
         .collect();
 
-    let last_year = match npts.last() {
-        Some(pt) => pt.0,
-        None => return,
-    };
+    let last_year = npts.last()?.0;
 
     let max_year = max_year.min(last_year);
 
-    let mut chart = match ChartBuilder::on(&root)
+    let mut chart = ChartBuilder::on(&root)
         .caption("Implied Timeline", font)
         .x_label_area_size(50)
         .y_label_area_size(50)
         .build_ranged(2020..max_year, 0.01f32..1f32)
-    {
-        Ok(c) => c,
-        Err(_) => return,
-    };
+        .ok()?;
 
     chart
         .configure_mesh()
         .x_desc("Max Year")
         .y_desc("Probability")
         .draw()
-        .unwrap();
-
-    // extend the plot to the end of the range
-    //npts.push((max_year, last_p));
+        .ok()?;
 
     chart
         .draw_series(LineSeries::new(npts.into_iter(), &RGBColor(0, 136, 238)))
-        .unwrap();
+        .ok()?;
+
+    Some(())
 }
