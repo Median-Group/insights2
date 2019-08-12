@@ -74,7 +74,7 @@ impl State {
             year_max,
             num_samples: 5000,
             last: 2200,
-            mode: mode,
+            mode,
             curve_repr: Some(curve_repr),
             model_curve: Some(curve),
             inv_curve: Some(inv_curve),
