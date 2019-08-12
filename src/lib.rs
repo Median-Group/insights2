@@ -1,5 +1,9 @@
 #![allow(clippy::cast_lossless)]
 
+extern crate wee_alloc;
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
 use data::CUM;
 use wasm_bindgen::prelude::*;
 
@@ -129,7 +133,7 @@ impl State {
     /// - `new_y: f32` - The y-coordinate of the point to be added, i.e., the probability the the process
     /// is no more than this much of the way done.
     pub fn add_point(&mut self, new_x: f32, new_y: f32) {
-        self.prog_points = dist::add_point(&mut self.prog_points, new_x, new_y);
+        dist::add_point(&mut self.prog_points, new_x, new_y);
     }
 
     /// Resets progress distribution to initial values.

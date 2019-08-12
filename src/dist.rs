@@ -123,7 +123,7 @@ pub fn pareto(min: u32, n_samps: usize, mode: DistMode) -> Vec<(f32, f32)> {
 /// insights that have been discovered.
 /// - `new_y: f32` - The y-coordinate of the point to be added, i.e., the probability the the process
 /// is no more than this much of the way done.
-pub fn add_point(pts: &mut Vec<(f32, f32)>, new_x: f32, new_y: f32) -> Vec<(f32, f32)> {
+pub fn add_point(pts: &mut Vec<(f32, f32)>, new_x: f32, new_y: f32) {
     // The coordinate transformation is just an affine map.
     // This could be somewhat more robust and allow for dynamically scalable canvas
     // for drawing/displaying the distribution, but if would require slightly more
@@ -140,20 +140,18 @@ pub fn add_point(pts: &mut Vec<(f32, f32)>, new_x: f32, new_y: f32) -> Vec<(f32,
 
     pts.sort_unstable_by(|(k1, _), (k2, _)| k1.partial_cmp(k2).unwrap());
 
-    // enforce monotonicity
-    pts.iter()
-        .copied()
-        .map(|(x, y)| {
-            if x < new_x {
-                (x, y.min(new_y))
-            } else if x > new_x {
-                (x, y.max(new_y))
-            } else {
-                (x, new_y)
-            }
-        })
-        .map(|(x, y)| (bound(x), bound(y)))
-        .collect()
+    // Enforce monotonicity.
+    for (x, y) in pts.iter_mut() {
+        if *x < new_x {
+            *x = bound(*x);
+            *y = bound(y.min(new_y));
+        } else if *x > new_x {
+            *x = bound(*x);
+            *y = bound(y.max(new_y));
+        } else {
+            *y = bound(new_y);
+        }
+    }
 }
 
 pub fn draw_dist(pts: &[(f32, f32)]) -> Option<()> {

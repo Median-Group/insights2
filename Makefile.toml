@@ -9,12 +9,12 @@ args = ["-p", "www/pkg"]
 command = "cargo"
 args = ["build", "--target=wasm32-unknown-unknown", "--release"]
 
-[tasks.bind]
+[tasks.bindgen]
 command = "wasm-bindgen"
 args = ["--out-dir", "www/pkg", "--target", "web", "target/wasm32-unknown-unknown/debug/insights2.wasm"]
 dependencies = ["build"]
 
-[tasks.bind_release]
+[tasks.bindgen_release]
 command = "wasm-bindgen"
 args = ["--out-dir", "www/pkg", "--target", "web", "target/wasm32-unknown-unknown/release/insights2.wasm"]
 dependencies = ["build_release"]
@@ -26,3 +26,12 @@ script = [
   microserver -p 8000
   '''
 ]
+
+[tasks.full_release]
+script = [
+  '''
+  cd www/pkg
+  wasm-opt -Oz insights2_bg.wasm -o insights2_bg.wasm
+  '''
+]
+dependencies = ['bindgen_release']
