@@ -162,7 +162,7 @@ pub fn draw_dist(pts: &[(f32, f32)]) -> Option<()> {
 
     let root = backend.into_drawing_area();
 
-    root.fill(&White).ok()?;
+    root.fill(&WHITE).ok()?;
 
     let font: FontDesc = ("Arial", 20.0).into();
 

@@ -47,7 +47,7 @@ pub(crate) fn draw_timeline(
     let root = backend.into_drawing_area();
     let font: FontDesc = ("Arial", 20.0).into();
 
-    root.fill(&White).ok()?;
+    root.fill(&WHITE).ok()?;
 
     let npts: Vec<(i32, f32)> = linspace(0.01, 0.999, 10_000)
         .map(|portion| {

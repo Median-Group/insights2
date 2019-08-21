@@ -44,7 +44,7 @@ pub fn draw_insights(
     let root = backend.into_drawing_area();
     let font: FontDesc = ("Arial", 20.0).into();
 
-    root.fill(&White).ok()?;
+    root.fill(&WHITE).ok()?;
 
     let mut chart = ChartBuilder::on(&root)
         .caption("Timeline of AI progress", font)
@@ -96,7 +96,7 @@ pub fn draw_insights(
 
     chart
         .configure_series_labels()
-        .border_style(&Black)
+        .border_style(&BLACK)
         .draw()
         .ok()?;
 
